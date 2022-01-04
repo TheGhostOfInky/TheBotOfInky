@@ -9,12 +9,14 @@ TheBotOfInky is a bot I devised with the main purpose of doing specific tasks th
 - Purge all unverified members in a server.
 - Purge all deleted accounts from your banlist.
 - Prevent specific users of being given specific roles.
+- Sussify images (thanks to LinesGuy's [code](https://github.com/LinesGuy/img_sussifier/))
 
 ## Requirements:
  - Python 3 (Latest is recommended but any version newer than 3.7 should work fine)
  - discord.py (2.0.0-alpha is needed if you want the bot to support threads, otherwise latest stable, 1.7.3, works fine)
  - python-dotenv (for loading the token from the `.env` file)
  - unidecode (for filter, not needed if you comment out its cog in the `main.py` file)
+ - Pillow and Numpy (for image sussifier, not needed if you comment out its cog in the `main.py` file)
  - A discord bot token setup with intents acess
 
 ## How to run:

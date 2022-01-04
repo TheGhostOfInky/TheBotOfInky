@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 class user_nuke(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    @commands.command()
+    @commands.command(name="user_nuke")
     @commands.has_permissions(manage_messages=True)
     async def user_nuke(self,ctx,userid: int=0,time: int=30):
         if userid == 0 or userid > 999999999999999999 or userid < 100000000000000000:
@@ -20,7 +20,10 @@ class user_nuke(commands.Cog):
                         await message.delete()
                 await ctx.send(f"Purged {c_count} messages from #{channel.name}")
             await ctx.send("All messages purged")
-                    
+
+    @user_nuke.error
+    async def user_nuke_error(error,ctx,message):
+        await ctx.send(message)
 
 def setup(bot):
     bot.add_cog(user_nuke(bot))

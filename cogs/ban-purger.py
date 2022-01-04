@@ -3,7 +3,7 @@ from discord.ext import commands
 class ban_purger(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    @commands.command()
+    @commands.command(name="purge")
     @commands.has_permissions(ban_members=True)
     async def purge(self,ctx):
         bans = await ctx.guild.bans()
@@ -25,5 +25,10 @@ class ban_purger(commands.Cog):
             await ctx.send(banlog)
         else:
             await ctx.send("There are no acccounts to purge")
+
+    @purge.error
+    async def purge_error(error,ctx,message):
+        await ctx.send(message)
+
 def setup(bot):
     bot.add_cog(ban_purger(bot))

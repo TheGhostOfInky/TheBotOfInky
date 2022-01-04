@@ -13,7 +13,7 @@ class shield(commands.Cog):
             if await check_filter(after,delta[0]):
                 await after.remove_roles(delta[0],reason="Shield engaged",atomic=True)
 
-    @commands.command()
+    @commands.command(name="shield")
     @commands.has_permissions(manage_roles=True)
     async def shield(self,ctx, member: discord.Member=None,role: discord.Role=None):
         if member==None or role==None:
@@ -21,13 +21,21 @@ class shield(commands.Cog):
         else:
             await ctx.send(await add_filter(member,role))
 
-    @commands.command()
+    @shield.error
+    async def shield_error(error,ctx,message):
+        await ctx.send(message)
+
+    @commands.command(name="unshield")
     @commands.has_permissions(manage_roles=True)
     async def unshield(self,ctx, member: discord.Member=None,role: discord.Role=None):
         if member==None or role==None:
             await ctx.send("Incorrect member and/or role specified")
         else:
             await ctx.send(await remove_filter(member,role))
+
+    @unshield.error
+    async def unshield_error(error,ctx,message):
+        await ctx.send(message)
 
 async def check_filter(user,newRole):
     global active_shields

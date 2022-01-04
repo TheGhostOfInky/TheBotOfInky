@@ -3,7 +3,7 @@ from discord.ext import commands
 class deletos(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    @commands.command()
+    @commands.command(name="deletos")
     @commands.has_permissions(manage_messages=True)
     async def deletos(self,ctx):
         if ctx.message.reference:
@@ -11,5 +11,10 @@ class deletos(commands.Cog):
             await message.delete()
         else:
             await ctx.send("No replies found")
+
+    @deletos.error
+    async def deletos_error(error,ctx,message):
+        await ctx.send(message)
+
 def setup(bot):
     bot.add_cog(deletos(bot))

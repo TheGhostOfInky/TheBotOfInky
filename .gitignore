@@ -1,4 +1,6 @@
 .env
 bot.py
 jname.py
+log_sniffer.py
+approve.py
 \__pycache__

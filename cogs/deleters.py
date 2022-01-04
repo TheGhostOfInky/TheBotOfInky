@@ -5,7 +5,7 @@ regex = r"nigger(|s)|niggr|\bni..er(\b|s\b)|nigress|\bnegro|shitskin|fag\b|\bfag
 class deleters(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    @commands.command()
+    @commands.command(name="clean_old")
     @commands.has_permissions(manage_messages=True)
     async def clean_old(self, ctx, channel: discord.TextChannel=None, time: int=365):
         d = datetime.today() - timedelta(days=time)
@@ -31,7 +31,7 @@ class deleters(commands.Cog):
         else:
             await ctx.send("No channel was specified")
 
-    @commands.command()
+    @commands.command(name="clean_new")
     @commands.has_permissions(manage_messages=True)
     async def clean_new(self, ctx, channel: discord.TextChannel=None, time: int=365):
         d = datetime.today() - timedelta(days=time)
@@ -58,7 +58,7 @@ class deleters(commands.Cog):
             await ctx.send("No channel was specified")
 
 
-    @commands.command()
+    @commands.command(name="clean_embed")
     @commands.has_permissions(manage_messages=True)
     async def clean_embed(self, ctx, channel: discord.TextChannel=None):
         if channel:
@@ -79,5 +79,18 @@ class deleters(commands.Cog):
             print("job done")
         else:
             await ctx.send("No channel was specified")
+
+    @clean_old.error
+    async def clean_old_error(error,ctx,message):
+        await ctx.send(message)
+
+    @clean_new.error
+    async def clean_new_error(error,ctx,message):
+        await ctx.send(message)
+
+    @clean_embed.error
+    async def clean_embed_error(error,ctx,message):
+        await ctx.send(message)
+
 def setup(bot):
     bot.add_cog(deleters(bot))
