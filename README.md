@@ -12,18 +12,21 @@ TheBotOfInky is a bot I devised with the main purpose of doing specific tasks th
 - Sussify images (thanks to LinesGuy's [code](https://github.com/LinesGuy/img_sussifier/))
 
 ## Requirements:
- - Python 3 (Latest is recommended but any version newer than 3.7 should work fine)
- - discord.py (2.0.0-alpha is needed if you want the bot to support threads, otherwise latest stable, 1.7.3, works fine)
- - python-dotenv (for loading the token from the `.env` file)
- - unidecode (for filter, not needed if you comment out its cog in the `main.py` file)
- - Pillow and Numpy (for image sussifier, not needed if you comment out its cog in the `main.py` file)
+ - Python 3 (Latest is recommended but any version newer than 3.8 should work fine)
+ - The following packages (listed in the requirements.txt file)
+    - discord.py (2.0.0-alpha is needed if you want the bot to support threads, otherwise latest stable, 1.7.3, works fine)
+    - python-dotenv (for loading the token from the `.env` file)
+    - unidecode (for filter, not needed if you comment out its cog in the `main.py` file)
+    - Pillow and Numpy (for image sussifier, not needed if you comment out its cog in the `main.py` file)
+ - FFMPEG installed and added to PATH (for image sussifier, not needed if you comment out its cog in the `main.py` file)
  - A discord bot token setup with intents acess
 
 ## How to run:
  - Download the repository
  - Rename `sample.env` to `.env` and open it in a text editor (notepad works fine), and replace the "00000.00000.00000" placeholder with your actual discord token and save.
  - Open a terminal/command prompt window in that folder (shift+right click > open command prompt/powershell window here on windows)
- - Type `py main.py` 
+ - Type `py -m pip install -r requirements.txt` to download all needed packages (FFMPEG not included)
+ - Type `py main.py` to tun the bot
  - If everything is setup right you will get the message `YourBotName#1234 has connected to discord`
  - Your bot should now be running, to stop it type ctrl+c in the terminal window or close it.
 
