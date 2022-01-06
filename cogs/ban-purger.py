@@ -8,19 +8,17 @@ class ban_purger(commands.Cog):
     async def purge(self,ctx):
         bans = await ctx.guild.bans()
         banlist = []
-        bancount = 0
         for ban in bans:
             if re.search(r"^Deleted User .{8}\b", ban.user.name):
                 await ctx.guild.unban(user=ban.user, reason="Unbanned Disabled Account")
                 banlist.append(f"{ban.user.name}#{ban.user.discriminator}")
-                bancount += 1
-        if bancount != 0:
-            if bancount > 68:
+        if banlist:
+            if len(banlist) > 68:
                 banlist = banlist[:68]
-                banlist.append(f"(And {bancount - 68} more)")
+                banlist.append(f"(And {len(banlist) - 68} more)")
             banlog = "Unbanned the following disabled accounts:\n```\n"
             for ban in banlist:
-                banlog = banlog + ban + "\n"
+                banlog += ban + "\n"
             banlog = banlog + "```"
             await ctx.send(banlog)
         else:
