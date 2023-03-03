@@ -1,8 +1,5 @@
 __pycache__
 logs
 .env
-log_sniffer.py
-approve.py
-newfilter.py
 bat.json
 termux-battery-status.bat
