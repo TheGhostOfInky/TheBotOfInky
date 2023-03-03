@@ -26,7 +26,7 @@ TheBotOfInky is a bot I devised with the main purpose of doing specific tasks th
  - Rename `sample.env` to `.env` and open it in a text editor. Replace the "00000.00000.00000" placeholder with your actual discord token and save.
  - Open a terminal/command prompt window in that folder (shift+right click > open command prompt/powershell window here on windows).
  - Type `py -m pip install -r requirements.txt`(Windows) or `python3 -m pip3 install -r requirements.txt`(POSIX) to download all needed packages (FFMPEG not included).
- - Type `py main.py` (Windows) or `python3 main.py` (POSIX) to tun the bot.
+ - Type `py main.py` (Windows) or `python3 main.py` (POSIX) to run the bot.
  - If everything is setup right you will get the message `YourBotName#1234 has connected to discord`.
  - Your bot should now be running, to stop it type ctrl+c in the terminal window or close it.
 

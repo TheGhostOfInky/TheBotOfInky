@@ -38,10 +38,9 @@ class utilities(commands.Cog):
             if not isinstance(ctx.channel, nextcord.TextChannel):
                 raise Exception("Invalid channel")
             channel = ctx.channel
-        str = ""
-        for arg in args:
-            str += " " + arg
-        await channel.send(str)
+
+        arg_list = " ".join(args)
+        await channel.send(arg_list)
         await ctx.message.add_reaction("🚀")
 
     @commands.command(name="roles")
@@ -174,12 +173,13 @@ class utilities(commands.Cog):
         perc: int = data["percentage"]
 
         emoji: str = ""
-        if data["status"] == "CHARGING":
-            emoji = "⚡"
-        elif data["status"] == "FULL":
-            emoji = "🔌"
-        elif data["status"] == "DISCHARGING":
-            emoji = "🪫" if perc < 30 else "🔋"
+        match(data["status"]):
+            case "CHARGING":
+                emoji = "⚡"
+            case "FULL":
+                emoji = "🔌"
+            case "DISCHARGING":
+                emoji = "🪫" if perc < 30 else "🔋"
 
         emb: nextcord.Embed = nextcord.Embed(
             type="rich",
