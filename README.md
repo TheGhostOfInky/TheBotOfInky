@@ -12,14 +12,13 @@ TheBotOfInky is a bot I devised with the main purpose of doing specific tasks th
 - Sussify images (thanks to LinesGuy's [code](https://github.com/LinesGuy/img_sussifier/))
 
 ## Requirements:
- - Python 3 (Latest is recommended but any version newer than 3.8 should work fine)
+ - Python 3 (Latest is recommended but any version newer than 3.10 should work fine)
  - The following packages (listed in the requirements.txt file)
-    - discord.py (2.0.0-alpha is needed if you want the bot to support threads, otherwise latest stable, 1.7.3, works fine)
+    - Nextcord (2.0.0 or newer is needed, 2.4.0+ recommended)
     - python-dotenv (for loading the token from the `.env` file)
-    - unidecode (for filter, not needed if you comment out its cog in the `main.py` file)
-    - Pillow and Numpy (for image sussifier, not needed if you comment out its cog in the `main.py` file)
+    - Pillow, Numpy, python-ffmpeg (for image sussifier, not needed if you comment out its cog in the `main.py` file)
  - FFMPEG installed and added to PATH (for image sussifier, not needed if you comment out its cog in the `main.py` file)
- - A discord bot token setup with intents acess
+ - A discord bot token setup with intents access
 
 ## How to run:
  - Download the repository
@@ -31,6 +30,8 @@ TheBotOfInky is a bot I devised with the main purpose of doing specific tasks th
  - Your bot should now be running, to stop it type ctrl+c in the terminal window or close it.
 
 ## Customization
- - To change the command prefix edit the symbol between quote marks in the 7th line of `main.py`
- - To change the words filtered by the auto-filter edit the 4th line of the `filter.py` file, the filter follows the standard [Python regex syntax](https://docs.python.org/3/library/re.html)
- - To change the words cleaned by the clean commands edit the 4th line of the `deleters.py` file, this filter once more follows the standard [Python regex syntax](https://docs.python.org/3/library/re.html)
+ - To change the command prefix add a `DISCORD_PREFIX` key to the `.env` file
+
+## Warnings
+ - `battery` command only works inside of termux environments with the termux api installed and correctly setup
+ - If you are running the bot on a big endian CPU, you might need to change the color format on the ffmpeg stream from `bgr32` to `rgb32`

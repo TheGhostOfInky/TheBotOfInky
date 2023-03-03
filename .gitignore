@@ -1,6 +1,8 @@
+__pycache__
+logs
 .env
-bot.py
-jname.py
 log_sniffer.py
 approve.py
-\__pycache__
+newfilter.py
+bat.json
+termux-battery-status.bat
