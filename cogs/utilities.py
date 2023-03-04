@@ -1,4 +1,4 @@
-import nextcord, datetime, time, subprocess, json, io, requests
+import nextcord, datetime, time, subprocess, json, io, aiohttp
 from nextcord.ext import commands
 from typing import Optional
 from base import nopings
@@ -277,10 +277,12 @@ class utilities(commands.Cog):
         """
         Returns the current uptime of the polcompballvalues backend server.
         """
-        resp = requests.get(
-            "https://pcbval.theghostofinky.repl.co/uptime/").json()
-        tstamp = datetime.datetime.fromisoformat(resp["start_time"])
-        raw_uptime = resp["elapsed_time"]
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://pcbval.theghostofinky.repl.co/uptime/") as resp:
+                data = await resp.json()
+
+        tstamp = datetime.datetime.fromisoformat(data["start_time"])
+        raw_uptime = data["elapsed_time"]
         f_uptime = f"Backend online for: {raw_uptime['days']}d, "\
             f"{raw_uptime['hours']}h, {raw_uptime['minutes']}m, {raw_uptime['seconds']}s"
         emb = nextcord.Embed(
