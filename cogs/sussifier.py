@@ -1,4 +1,4 @@
-import nextcord, aiohttp, re, math, ffmpeg, dotenv, os
+import nextcord, aiohttp, re, math, ffmpeg, dotenv, os, asyncio
 import numpy as np
 from base import nopings
 from typing import Optional
@@ -70,7 +70,7 @@ def initialize(path: str, count: int = 6) -> tuple[list[np.ndarray], tuple[int, 
     return (data, size)
 
 
-def process_image(
+async def process_image(
         img_bytes: BytesIO,
         frames: list[np.ndarray],
         size: tuple[int, int],
@@ -86,18 +86,18 @@ def process_image(
     out = (width, out_h)
     scaled = image.resize(out, Image.NEAREST if nn else None)
 
-    return [
-        sussify_frame(scaled, x, out, size, frames) for x in range(6)
-    ]
+    return await asyncio.gather(*[
+        asyncio.to_thread(sussify_frame, scaled, x, out, size, frames) for x in range(6)
+    ])
 
 
-def transform(image: BytesIO, nn: bool = False) -> BytesIO:
+async def transform(image: BytesIO, nn: bool = False) -> BytesIO:
     global cached_frames, cached_size
 
     if not cached_frames:
         cached_frames, cached_size = initialize(FRAMES_LOCATION)
 
-    processed_frames = process_image(
+    processed_frames = await process_image(
         image, cached_frames, cached_size, nn=nn
     )
 
@@ -126,7 +126,7 @@ def transform(image: BytesIO, nn: bool = False) -> BytesIO:
         )
     )
 
-    out, err = streams.communicate(input=buff.getbuffer())
+    out, err = await asyncio.to_thread(streams.communicate, input=buff.getbuffer())
 
     if err:
         with open("./logs/ffmpeg.log", "a") as l:
@@ -164,9 +164,9 @@ async def find_image_current(ctx: commands.Context) -> Optional[str]:
             return attachment.url
 
 
-class SussifierFlags(commands.FlagConverter):
+class SussifierFlags(commands.FlagConverter, case_insensitive=True):
+    user: Optional[nextcord.Member] = None
     nn: bool = False
-    user: Optional[nextcord.Member]
 
 
 class sussifier(commands.Cog):
@@ -174,9 +174,9 @@ class sussifier(commands.Cog):
         self.bot = bot
 
     @commands.command(name="sussify")
-    async def sussify(self, ctx: commands.Context, flags: SussifierFlags):
+    async def sussify(self, ctx: commands.Context, *, flags: SussifierFlags):
         """
-        Correct usage ,sussify <nn:bool> <user:@user>
+        Correct usage ,sussify <user:@user> <nn:bool>
         Sussifies last image sent to channel or user avatar; nn:True disables image filtering
         """
         async with ctx.channel.typing():
@@ -196,7 +196,8 @@ class sussifier(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 img_data = await fetch(session, img)
 
-            sus_img = transform(BytesIO(img_data), nn=flags.nn)
+            sus_img = await (await asyncio.to_thread(
+                transform, BytesIO(img_data), nn=flags.nn))
 
             file = nextcord.File(sus_img, filename="sussified.gif")
 

@@ -94,7 +94,7 @@ async def get_wiki_page(url: str, name: str) -> Union[str, None]:
         "format": "json",
         "prop": "text",
         "utf8": "",
-        "prop": "text=false",
+        "prop": "",
         "page": name
     }
     apiurl: str = url + "/w/api.php"
@@ -113,7 +113,7 @@ async def search_page(url: str, name: str) -> Union[nextcord.Embed, str, None]:
         "format": "json",
         "list": "search",
         "utf8": "",
-        "srprop": "snippet=false",
+        "srprop": "",
         "srsearch": name
     }
     apiurl: str = url + "/w/api.php"
@@ -162,7 +162,6 @@ async def get_page(ctx: commands.Context, url: str, name: str):
                 content="No matching pages were found",
                 allowed_mentions=nopings
             )
-        return
 
 
 def setup(bot):
