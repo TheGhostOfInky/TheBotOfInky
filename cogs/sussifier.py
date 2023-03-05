@@ -78,13 +78,7 @@ def initialize(path: str, count: int = 6) -> tuple[list[np.ndarray], tuple[int, 
         if i == 0:
             size = image.size
 
-        pixels = np.array(image)
-
-        pixels[
-            np.all(pixels == (0, 4, 0, 255), axis=-1)
-        ] = (0, 0, 0, 0)
-
-        data.append(pixels)
+        data.append(np.array(image))
 
     return (data, size)
 
