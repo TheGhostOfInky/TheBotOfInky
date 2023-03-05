@@ -16,21 +16,30 @@ cached_frames = []
 cached_size = (0, 0)
 
 
-def sus_pixel(pixel: tuple[int, int, int], frame: np.ndarray) -> Img:
+def sus_pixel(pixel: tuple[int, int, int, int], frame: np.ndarray) -> Img:
     def adj(val):
         return math.floor(val * 2 / 3)
 
-    r, g, b = pixel
-    frame_data = np.copy(frame)
-    red, green, blue, *_ = frame_data.T
+    r, g, b, a = pixel
+    frame_data: np.ndarray = np.copy(frame)
 
-    color_1 = (red == 214) & (green == 224) & (blue == 240)
-    frame_data[..., :-1][color_1.T] = (r, g, b)
+    frame_data[
+        np.all(frame_data == (214, 224, 240, 255), axis=-1)
+    ] = (r, g, b, a)
 
-    color_2 = (red == 131) & (green == 148) & (blue == 191)
-    frame_data[..., :-1][color_2.T] = (adj(r), adj(g), adj(b))
+    frame_data[
+        np.all(frame_data == (131, 148, 191, 255), axis=-1)
+    ] = (adj(r), adj(g), adj(b), a)
 
-    return Image.fromarray(frame_data)
+    frame_data[
+        np.all(frame_data == (0, 0, 0, 255), axis=-1)
+    ] = (0, 0, 0, a)
+
+    frame_data[
+        np.all(frame_data == (148, 201, 219, 255), axis=-1)
+    ] = (148, 201, 219, a)
+
+    return Image.fromarray(frame_data, mode="RGBA")
 
 
 def sussify_frame(
@@ -38,10 +47,12 @@ def sussify_frame(
         frame_number: int,
         dimmensions: tuple[int, int],
         base_size: tuple[int, int],
-        frames: list[np.ndarray]) -> Img:
+        frames: list[np.ndarray],
+        alpha: bool = False) -> Img:
 
     res = (dimmensions[0] * base_size[0], dimmensions[1] * base_size[1])
-    frame = Image.new(mode="RGBA", size=res)
+    frame = Image.new(mode="RGBA", size=res, color=(
+        0, 0, 0, 0 if alpha else 255))
 
     for x, y in product(range(dimmensions[0]), range(dimmensions[1])):
         index = (x - y + frame_number) % len(frames)
@@ -51,7 +62,8 @@ def sussify_frame(
 
         processed_pixel = sus_pixel(pixel, selected_frame)
 
-        frame.paste(processed_pixel, (x * base_size[0], y * base_size[1]))
+        frame.paste(processed_pixel,
+                    (x * base_size[0], y * base_size[1]), processed_pixel)
 
     return frame
 
@@ -65,7 +77,14 @@ def initialize(path: str, count: int = 6) -> tuple[list[np.ndarray], tuple[int, 
         image = Image.open(f"{path}/{i}.png").convert("RGBA")
         if i == 0:
             size = image.size
-        data.append(np.array(image))
+
+        pixels = np.array(image)
+
+        pixels[
+            np.all(pixels == (0, 4, 0, 255), axis=-1)
+        ] = (0, 0, 0, 0)
+
+        data.append(pixels)
 
     return (data, size)
 
@@ -75,9 +94,10 @@ async def process_image(
         frames: list[np.ndarray],
         size: tuple[int, int],
         width: int = 21,
-        nn: bool = False) -> list[Img]:
+        nn: bool = False,
+        alpha: bool = False) -> list[Img]:
 
-    image = Image.open(img_bytes).convert("RGB")
+    image = Image.open(img_bytes).convert("RGBA")
 
     w, h = image.size
 
@@ -87,11 +107,15 @@ async def process_image(
     scaled = image.resize(out, Image.NEAREST if nn else None)
 
     return await asyncio.gather(*[
-        asyncio.to_thread(sussify_frame, scaled, x, out, size, frames) for x in range(6)
+        asyncio.to_thread(
+            sussify_frame,
+            scaled, x, out,
+            size, frames, alpha
+        ) for x in range(6)
     ])
 
 
-async def transform(image: BytesIO, nn: bool = False) -> BytesIO:
+async def transform(image: BytesIO, nn: bool = False, alpha: bool = False) -> BytesIO:
     global cached_frames, cached_size
 
     if not cached_frames:
@@ -100,7 +124,7 @@ async def transform(image: BytesIO, nn: bool = False) -> BytesIO:
         )
 
     processed_frames = await process_image(
-        image, cached_frames, cached_size, nn=nn
+        image, cached_frames, cached_size, nn=nn, alpha=alpha
     )
 
     w, h = processed_frames[0].size
@@ -109,13 +133,28 @@ async def transform(image: BytesIO, nn: bool = False) -> BytesIO:
 
     buff = BytesIO(b"".join(files))
 
-    streams = (
+    split = (
         ffmpeg.input(
             "pipe:",
             format="rawvideo",
             pix_fmt="bgr32",
             s=f"{w}x{h}",
             framerate=20
+        )
+        .split()
+    )
+    palette = split[0].filter(
+        "palettegen",
+        reserve_transparent=1,
+        max_colors=254,
+        stats_mode="single"
+    )
+    final = (
+        ffmpeg.filter(
+            [split[1], palette],
+            "paletteuse",
+            alpha_threshold=128,
+            dither="none"
         )
         .output("pipe:", format="gif")
         .global_args("-hide_banner")
@@ -128,7 +167,7 @@ async def transform(image: BytesIO, nn: bool = False) -> BytesIO:
         )
     )
 
-    out, err = await asyncio.to_thread(streams.communicate, input=buff.getbuffer())
+    out, err = await asyncio.to_thread(final.communicate, input=buff.getbuffer())
 
     if err:
         with open("./logs/ffmpeg.log", "a") as l:
@@ -186,6 +225,7 @@ async def find_image_history(ctx: commands.Context) -> Optional[str]:
 class SussifierFlags(commands.FlagConverter, case_insensitive=True):
     user: Optional[nextcord.Member] = None
     nn: bool = False
+    alpha: bool = False
 
 
 class sussifier(commands.Cog):
@@ -195,8 +235,9 @@ class sussifier(commands.Cog):
     @commands.command(name="sussify")
     async def sussify(self, ctx: commands.Context, *, flags: SussifierFlags):
         """
-        Correct usage ,sussify <user:@user> <nn:bool>
-        Sussifies last image sent to channel or user avatar; nn:True disables image filtering
+        Correct usage ,sussify <user:@user> <nn:bool> <alpha:bool>
+        Sussifies last image sent to channel or user avatar;
+        nn: true disables image filtering, alpha: true enables transparency
         """
         async with ctx.channel.typing():
             if flags.user:
@@ -217,7 +258,7 @@ class sussifier(commands.Cog):
                 img_data = await fetch(session, img)
 
             sus_img = await (await asyncio.to_thread(
-                transform, BytesIO(img_data), nn=flags.nn))
+                transform, BytesIO(img_data), nn=flags.nn, alpha=flags.alpha))
 
             file = nextcord.File(sus_img, filename="sussified.gif")
 
