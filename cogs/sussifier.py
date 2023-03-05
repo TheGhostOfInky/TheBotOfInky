@@ -95,7 +95,9 @@ async def transform(image: BytesIO, nn: bool = False) -> BytesIO:
     global cached_frames, cached_size
 
     if not cached_frames:
-        cached_frames, cached_size = initialize(FRAMES_LOCATION)
+        cached_frames, cached_size = await asyncio.to_thread(
+            initialize, FRAMES_LOCATION
+        )
 
     processed_frames = await process_image(
         image, cached_frames, cached_size, nn=nn
@@ -140,28 +142,45 @@ async def fetch(session: aiohttp.ClientSession, url: str):
         return await response.read()
 
 
-async def find_image(ctx: commands.Context) -> Optional[str]:
-    done = re.compile(r".+/sussified.gif$", flags=re.IGNORECASE | re.MULTILINE)
-    pattern = re.compile(r".+\.(png|gif|jpg|jpeg|webp|tiff)$",
-                         flags=re.IGNORECASE | re.MULTILINE)
-    async for messasge in ctx.channel.history(limit=100):
-        if not messasge.attachments:
-            continue
-        for attachment in messasge.attachments:
-            if done.match(attachment.url):
-                continue
-            if pattern.match(attachment.url):
-                return attachment.url
+def find_image_message(message: nextcord.Message) -> Optional[str]:
+    pattern = re.compile(
+        r".+\.(png|gif|jpg|jpeg|webp|tiff|tif)(\?.+)?$",
+        flags=re.IGNORECASE | re.MULTILINE
+    )
 
-
-async def find_image_current(ctx: commands.Context) -> Optional[str]:
-    pattern = re.compile(r".+\.(png|gif|jpg|jpeg|webp|tiff)$",
-                         flags=re.IGNORECASE | re.MULTILINE)
-    if not ctx.message.attachments:
-        return
-    for attachment in ctx.message.attachments:
+    for attachment in message.attachments:
         if pattern.match(attachment.url):
             return attachment.url
+
+    for embed in message.embeds:
+        if embed.image.url and pattern.match(embed.image.url):
+            return embed.image.url
+
+        if embed.url and pattern.match(embed.url):
+            return embed.url
+
+
+async def find_image_reply(ctx: commands.Context) -> Optional[str]:
+    if not ctx.message.reference:
+        return None
+
+    id = ctx.message.reference.message_id
+    if not id:
+        return None
+
+    ref = await ctx.message.channel.fetch_message(id)
+
+    return find_image_message(ref)
+
+
+async def find_image_history(ctx: commands.Context) -> Optional[str]:
+    done = re.compile(r".+/sussified.gif$", flags=re.IGNORECASE | re.MULTILINE)
+
+    async for message in ctx.channel.history(limit=100):
+        msg_link = find_image_message(message)
+
+        if msg_link and not done.match(msg_link):
+            return msg_link
 
 
 class SussifierFlags(commands.FlagConverter, case_insensitive=True):
@@ -183,8 +202,9 @@ class sussifier(commands.Cog):
             if flags.user:
                 img = flags.user.display_avatar.url
             else:
-                img = await find_image_current(ctx) \
-                    or await find_image(ctx)
+                img = await find_image_reply(ctx) \
+                    or find_image_message(ctx.message) \
+                    or await find_image_history(ctx)
 
             if img is None:
                 await ctx.reply(
