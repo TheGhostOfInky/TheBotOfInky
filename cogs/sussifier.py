@@ -176,21 +176,16 @@ async def fetch(session: aiohttp.ClientSession, url: str):
 
 
 def find_image_message(message: nextcord.Message) -> Optional[str]:
-    pattern = re.compile(
-        r".+\.(png|gif|jpg|jpeg|webp|tiff|tif)(\?.+)?$",
-        flags=re.IGNORECASE | re.MULTILINE
-    )
-
     for attachment in message.attachments:
-        if pattern.match(attachment.url):
+        if attachment.height is not None:
             return attachment.url
 
     for embed in message.embeds:
-        if embed.image.url and pattern.match(embed.image.url):
+        if embed.image.url is not None:
             return embed.image.url
 
-        if embed.url and pattern.match(embed.url):
-            return embed.url
+        if embed.thumbnail.url is not None:
+            return embed.thumbnail.url
 
 
 async def find_image_reply(ctx: commands.Context) -> Optional[str]:
