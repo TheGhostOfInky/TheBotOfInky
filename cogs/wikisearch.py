@@ -13,7 +13,7 @@ class wikisearch(commands.Cog):
         self.bot = bot
 
     @commands.command(name="pcbw", aliases=["pcb"])
-    async def pcbw(self, ctx: commands.Context, *args) -> None:
+    async def pcbw(self, ctx: commands.Context, *args: str) -> None:
         """
         Correct usage: ,pcbw/,pcb <search terms>
         Searches for matching pages in the Polcompball wiki
@@ -26,7 +26,7 @@ class wikisearch(commands.Cog):
         )
 
     @commands.command(name="pcba")
-    async def pcba(self, ctx: commands.Context, *args) -> None:
+    async def pcba(self, ctx: commands.Context, *args: str) -> None:
         """
         Correct usage: ,pcba <search terms>
         Searches for matching pages in the Polcompball Anarchy wiki
@@ -39,7 +39,7 @@ class wikisearch(commands.Cog):
         )
 
     @commands.command(name="pcbm")
-    async def pcbm(self, ctx: commands.Context, *args) -> None:
+    async def pcbm(self, ctx: commands.Context, *args: str) -> None:
         """
         Correct usage: ,pcbm <search terms>
         Searches for matching pages in the Polcompball Minarchy wiki
@@ -52,7 +52,7 @@ class wikisearch(commands.Cog):
         )
 
     @commands.command(name="wp", aliases=["wiki", "wikipedia"])
-    async def wp(self, ctx: commands.Context, *args) -> None:
+    async def wp(self, ctx: commands.Context, *args: str) -> None:
         """
         Correct usage: ,wp/,wiki/,wikipedia <search terms>
         Searches for matching pages in English Wikipedia
@@ -65,7 +65,7 @@ class wikisearch(commands.Cog):
         )
 
     @commands.command(name="wt", aliases=["wiktionary"])
-    async def wt(self, ctx: commands.Context, *args) -> None:
+    async def wt(self, ctx: commands.Context, *args: str) -> None:
         """
         Correct usage: ,wt/,wiktionary <search terms>
         Searches for matching pages in English Wiktionary

@@ -10,11 +10,13 @@ class events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f'{self.bot.user} has connected to discord')
+        print(f"{self.bot.user} has connected to discord")
+
         # sets status
+        py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         await self.bot.change_presence(
             activity=nextcord.Game(
-                name=f"Running on Nextcord {nextcord.__version__} under Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+                name=f"Running on Nextcord {nextcord.__version__} under Python {py_ver}"
             )
         )
 
@@ -23,11 +25,12 @@ class events(commands.Cog):
         if message.author.bot:
             return
         for attachment in message.attachments:
-            if attachment.height == 1860 and attachment.width == 800:
+            url = attachment.url.endswith("PCBValues.png")
+            if url and attachment.width == 800 and attachment.height == 1000:
                 await message.reply(
-                    content="Remember to submit your polcompballvalues scores using the "
+                    content="Remember to submit your PCBValues scores using the "
                     '"Submit Your Scores" option at the bottom of the results '
-                    "page if you want to be added to the user gallery.",
+                    "page if you want to be added to the User Gallery.",
                     allowed_mentions=nopings
                 )
 

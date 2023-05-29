@@ -38,7 +38,7 @@ def getMsgstr(ctx: commands.Context, lim: int) -> list[str]:
     index: int = 0
 
     for emoji in emoji_str:
-        if ((len(msg_str[index]) + len(emoji)) < lim):
+        if (len(msg_str[index]) + len(emoji)) < lim:
             msg_str[index] += emoji
         else:
             index += 1

@@ -1,7 +1,9 @@
-import nextcord, datetime, time, subprocess, json, io, aiohttp
+import nextcord, datetime, time, subprocess, json, io, aiohttp, os
 from nextcord.ext import commands
 from typing import Optional
 from base import nopings
+
+TERMUX = os.getenv("TERMUX_VERSION")
 
 
 class utilities(commands.Cog):
@@ -55,10 +57,10 @@ class utilities(commands.Cog):
             member = ctx.author
 
         totalroles = member.roles[1:]
-        rolelist = "\n ".join(
-            ["<@&" + str(r.id) + ">" for r in totalroles[::-1]])
+        rolelist = "\n ".join(f"<@&{r.id}>" for r in totalroles[::-1])
+
         emb2 = nextcord.Embed(
-            title=f"Roles of {member.name}#{member.discriminator}:",
+            title=f"Roles of {member}:",
             type="rich",
             description=rolelist,
             color=0x0000FE,
@@ -88,8 +90,8 @@ class utilities(commands.Cog):
             icon_url="https://cdn.discordapp.com/attachments/860367460854792193/860369517740818463/inky-bi-ghost.gif"
         )
         emb1.set_footer(
-            text="Built with discord.py",
-            icon_url="https://cdn.discordapp.com/attachments/860367460854792193/860368832497844244/discordpy.png"
+            text="Built with nextcord",
+            icon_url="https://github.com/nextcord/nextcord/raw/master/assets/logo.png"
         )
         emb1.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/860367460854792193/860367501698531328/TheBotOfInky.png"
@@ -120,6 +122,7 @@ class utilities(commands.Cog):
             if not isinstance(ctx.author, nextcord.Member):
                 raise Exception("Invalid caller")
             user = ctx.author
+
         emb: nextcord.Embed = nextcord.Embed(
             title=str(user),
             type="rich"
@@ -164,6 +167,13 @@ class utilities(commands.Cog):
         """
         Displays the status of the battery of the bot's host system
         """
+        if not TERMUX:
+            await ctx.reply(
+                "This bot instance is not running under Termux",
+                allowed_mentions=nopings
+            )
+            return
+
         async with ctx.channel.typing():
             out = subprocess.check_output(
                 args="termux-battery-status",
@@ -195,10 +205,13 @@ class utilities(commands.Cog):
 
     @commands.command(name="banlist")
     @commands.has_permissions(manage_messages=True)
-    async def banlist(self, ctx):
+    async def banlist(self, ctx: commands.Context):
         """
         DMs the summoning user a text file with the current server's ban list
         """
+        if not ctx.guild:
+            raise Exception("Invalid Guild")
+
         bans = [entry async for entry in ctx.guild.bans(limit=2000)]
         bantxt = "\n".join(
             ["{} (ID:{})".format(str(x.user), x.user.id) for x in bans]
@@ -219,7 +232,7 @@ class utilities(commands.Cog):
 
     @commands.command(name="eval")
     @commands.is_owner()
-    async def eval(self, ctx: commands.Context, *args):
+    async def eval(self, ctx: commands.Context, *args: str):
         """
         Correct usage: ,eval <commands>
         Evaluates commands the inputted commands in a shell
@@ -285,6 +298,7 @@ class utilities(commands.Cog):
         raw_uptime = data["elapsed_time"]
         f_uptime = f"Backend online for: {raw_uptime['days']}d, "\
             f"{raw_uptime['hours']}h, {raw_uptime['minutes']}m, {raw_uptime['seconds']}s"
+
         emb = nextcord.Embed(
             title="Polcompballvalues backend uptime:",
             type="rich",

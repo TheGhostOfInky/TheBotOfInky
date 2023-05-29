@@ -3,21 +3,21 @@ from nextcord.ext import commands
 from base import nopings
 
 dotenv.load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN") or ""
-PREFIX = os.getenv("DISCORD_PREFIX") or "$"
+TOKEN = os.getenv("DISCORD_TOKEN", "")
+PREFIX = os.getenv("DISCORD_PREFIX", "$")
 intents = nextcord.Intents().all()
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
-cogs = ["events", "utilities", "ban-purger",
+COGS = ["events", "utilities", "ban-purger",
         "wikisearch", "emojilister", "sussifier"]
-for cog in cogs:
+for cog in COGS:
     bot.load_extension("cogs." + cog)
 
 
 @bot.event
 async def on_disconnect():
     time = datetime.datetime.now()
-    print(f"Disconnected at {time}")
+    logging.log(logging.INFO, f"Disconnected at {time}")
 
 
 @bot.event
